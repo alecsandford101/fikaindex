@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fika Index — Stockholm Café Rankings</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f1e8;color:#25231f}button,input,select{font:inherit}button{cursor:pointer}.app{max-width:1180px;margin:auto;padding:32px 20px 60px}.hero{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:28px}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:800;color:#806b52}.hero h1{font-family:Georgia,serif;font-size:54px;line-height:1;margin:7px 0}.hero p{margin:0;color:#6d665d}.badge{background:#25231f;color:#fff;padding:12px 16px;border-radius:999px;font-weight:700}.grid{display:grid;grid-template-columns:340px 1fr;gap:22px}.panel,.card{background:#fffdf8;border:1px solid #e5ddcf;border-radius:20px;box-shadow:0 8px 30px rgba(40,30,20,.05)}.panel{padding:22px}.panel h2{font-family:Georgia,serif;margin:0 0 18px;font-size:25px}.field{margin-bottom:14px}.field label{display:block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;color:#756b60}.field input,.field select{width:100%;border:1px solid #d8cfbf;border-radius:10px;padding:11px 12px;background:#fff}.scores{display:grid;grid-template-columns:1fr 1fr;gap:10px}.submit{width:100%;border:0;border-radius:12px;padding:13px;background:#25231f;color:#fff;font-weight:800;margin-top:5px}.controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px}.controls h2{font-family:Georgia,serif;margin:0;font-size:29px}.controls select{border:1px solid #d8cfbf;border-radius:10px;padding:9px;background:#fffdf8}.cards{display:grid;gap:12px}.card{padding:18px;display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center}.rank{font-family:Georgia,serif;font-size:28px;color:#9b8b75}.name{font-size:19px;font-weight:850}.meta{font-size:13px;color:#81786d;margin-top:3px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.chip{font-size:11px;background:#eee8dc;border-radius:999px;padding:5px 8px}.score{font-size:27px;font-weight:900;text-align:right}.score small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#81786d}.empty{text-align:center;padding:45px;color:#80766a}@media(max-width:800px){.grid{grid-template-columns:1fr}.hero{align-items:start;flex-direction:column}.hero h1{font-size:42px}.badge{align-self:flex-start}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState}=React;
+const initial=[
+{name:"Drop Coffee",area:"Södermalm",coffee:9.5,food:8.5,atmosphere:9,work:8,value:7.5},
+{name:"Kaffeverket",area:"Vasastan",coffee:9,food:8.5,atmosphere:9.2,work:9,value:8},
+{name:"Svedjan Bageri",area:"Vasastan",coffee:8.8,food:9.7,atmosphere:9.1,work:6.5,value:8.2},
+{name:"Café Pascal",area:"Vasastan",coffee:8.7,food:9,atmosphere:8.8,work:8.2,value:8.4},
+{name:"Lykke Kaffegårdar",area:"Södermalm",coffee:9.2,food:8,atmosphere:8.7,work:7.8,value:7.8}
+];
+function overall(x){return +(x.coffee*.25+x.food*.15+x.atmosphere*.20+x.work*.15+x.value*.15+8*.10).toFixed(1)}
+function App(){
+ const [cafes,setCafes]=useState(initial.map(x=>({...x,overall:overall(x)})));
+ const [area,setArea]=useState("All");
+ const [form,setForm]=useState({name:"",area:"",coffee:8,food:8,atmosphere:8,work:8,value:8});
+ const areas=["All",...Array.from(new Set(cafes.map(c=>c.area)))];
+ const shown=cafes.filter(c=>area==="All"||c.area===area).sort((a,b)=>b.overall-a.overall);
+ const update=(k,v)=>setForm({...form,[k]:k==="name"||k==="area"?v:Number(v)});
+ const submit=e=>{e.preventDefault();if(!form.name.trim()||!form.area.trim())return;setCafes([...cafes,{...form,overall:overall(form)}]);setForm({name:"",area:"",coffee:8,food:8,atmosphere:8,work:8,value:8})};
+ return <div className="app">
+  <div className="hero"><div><div className="eyebrow">Stockholm / Café Intelligence</div><h1>Fika Index</h1><p>A personal ranking of the city's cafés, one fika at a time.</p></div><div className="badge">{cafes.length} cafés ranked</div></div>
+  <div className="grid">
+   <form className="panel" onSubmit={submit}><h2>Add a café</h2>
+    <div className="field"><label>Café</label><input placeholder="e.g. Johan & Nyström" value={form.name} onChange={e=>update("name",e.target.value)}/></div>
+    <div className="field"><label>Area</label><input placeholder="e.g. Södermalm" value={form.area} onChange={e=>update("area",e.target.value)}/></div>
+    <div className="scores">{["coffee","food","atmosphere","work","value"].map(k=><div className="field" key={k}><label>{k}</label><select value={form[k]} onChange={e=>update(k,e.target.value)}>{Array.from({length:21},(_,i)=><option key={i} value={i/2}>{(i/2).toFixed(1)}</option>)}</select></div>)}</div>
+    <div className="field"><label>Overall — calculated automatically</label><input disabled value={overall(form)+"/10"}/></div>
+    <button className="submit">Add to Fika Index</button>
+   </form>
+   <main><div className="controls"><h2>Rankings</h2><select value={area} onChange={e=>setArea(e.target.value)}>{areas.map(a=><option key={a}>{a}</option>)}</select></div>
+    <div className="cards">{shown.length?shown.map((c,i)=><div className="card" key={c.name+"-"+i}><div className="rank">#{i+1}</div><div><div className="name">{c.name}</div><div className="meta">{c.area}</div><div className="chips"><span className="chip">Coffee {c.coffee}</span><span className="chip">Food {c.food}</span><span className="chip">Atmosphere {c.atmosphere}</span><span className="chip">Work {c.work}</span><span className="chip">Value {c.value}</span></div></div><div className="score">{c.overall}<small>overall</small></div></div>):<div className="panel empty">No cafés in this area yet.</div>}</div>
+   </main>
+  </div>
+ </div>
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
